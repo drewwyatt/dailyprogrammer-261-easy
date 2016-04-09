@@ -6,7 +6,10 @@ export class MagicSquare {
     }
     
     get isValid(): boolean {
-        return Number.isInteger(this.size);
+        return (
+            Number.isInteger(this.size) &&
+            this._setIsValid(this.rows)
+        );
     }
     
     get rows(): number[][] {
@@ -33,18 +36,63 @@ export class MagicSquare {
         return this._sqrt;
     }
     
+    get seriesSum(): number {
+        return (this._seriesSum && this.isValid) ? this._seriesSum : null;
+    }
+    
     // private
     
     _rows: number[][];
     _columns: number[][];
     _sqrt: number;
+    _seriesSum: number;
     
     _getRows(): number[][] {
-        return [];
+        const rows = [];
+        let row: number[];
+        let index: number;
+        for(let i=0; i<this.size; i++) {
+            row = [];
+            
+            for(let j=0; j<this.size; j++) {
+                index = i * this.size + j; 
+                row.push(this.numbers[index]);
+            }
+            
+            rows.push(row);
+        }
+        
+        return rows;
     }
     
     _getColumns(): number[][] {
         return [];
     }
     
+    _setIsValid(set: number[][]): boolean {
+        let isValid = true;
+        
+        for(let i=0; i<set.length; i++) {
+            isValid = this._totalIsValid(set[i].reduce(this._sumReducer));
+            if(!isValid) {
+                break;
+            }
+        }
+        
+        return  isValid;
+    }
+    
+    _sumReducer(previousValue: number, currentValue: number): number {
+        return previousValue + currentValue;
+    }
+    
+    _totalIsValid(sum: number): boolean {
+        console.log('validating total...', sum);
+        if(this._seriesSum) {
+            return sum === this._seriesSum;
+        } else {
+            this._seriesSum = sum;
+            return true;
+        }
+    }
 }
