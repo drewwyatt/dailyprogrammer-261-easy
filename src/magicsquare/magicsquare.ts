@@ -7,11 +7,12 @@ export class MagicSquare {
         this.numbers = numbers;
     }
 
-    get isValid(): boolean {
+    get isValid(): boolean {        
         return (
             Number.isInteger(this.size) &&
             this._setIsValid(this.rows) &&
-            this._setIsValid(this.columns)
+            this._setIsValid(this.columns) &&
+            this._setIsValid(this.diagonals)
         );
     }
 
@@ -30,6 +31,14 @@ export class MagicSquare {
         
         return this._columns;;
     }
+    
+    get diagonals(): number[][] {
+        if(!this._diagonals) {
+            this._diagonals = this._getDiagonals();
+        }
+        
+        return this._diagonals;
+    }
 
     get size(): number {
         if (!this._sqrt) {
@@ -45,20 +54,38 @@ export class MagicSquare {
 
     // private
 
-    _rows: number[][];
-    _columns: number[][];
-    _sqrt: number;
-    _seriesSum: number;
+    private _rows: number[][];
+    private _columns: number[][];
+    private _diagonals: number[][];
+    private _sqrt: number;
+    private _seriesSum: number;
 
-    _getRows(): number[][] {
+    private _getRows(): number[][] {
         return this._getSet(SetType.ROW);
     }
 
-    _getColumns(): number[][] {
+    private _getColumns(): number[][] {
         return this._getSet(SetType.COLUMN);
     }
+    
+    private _getDiagonals(): number[][] {
+        const set = [];
+        let series: number[] = [];
+        for(let i=0; i<this.numbers.length; i = i + this.size + 1) {
+            series.push(this.numbers[i]);
+        }
+        
+        set.push(series);
+        series = [];
+        for(let i = this.size -1; i <= this.numbers.length - this.size; i = i + this.size -1) {
+            series.push(this.numbers[i]);
+        }
+        
+        set.push(series);
+        return set;
+    }
 
-    _getSet(setType: SetType): number[][] {
+    private _getSet(setType: SetType): number[][] {
         const set = [];
         let series: number[];
         let index: number;
@@ -76,11 +103,11 @@ export class MagicSquare {
         return set;
     }
 
-    _setIsValid(set: number[][]): boolean {
+    private _setIsValid(set: number[][]): boolean {
         let isValid = true;
 
         for (let i = 0; i < set.length; i++) {
-            isValid = this._totalIsValid(set[i].reduce(this._sumReducer));
+            isValid = this._sumIsValid(set[i].reduce(this._sumReducer));
             if (!isValid) {
                 break;
             }
@@ -89,11 +116,11 @@ export class MagicSquare {
         return isValid;
     }
 
-    _sumReducer(previousValue: number, currentValue: number): number {
+    private _sumReducer(previousValue: number, currentValue: number): number {
         return previousValue + currentValue;
     }
 
-    _totalIsValid(sum: number): boolean {
+    private _sumIsValid(sum: number): boolean {
         console.log('validating total...', sum);
         if (this._seriesSum) {
             return sum === this._seriesSum;
